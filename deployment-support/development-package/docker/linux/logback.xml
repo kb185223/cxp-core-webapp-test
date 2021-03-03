@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        PERF4J LOG Definitions
+    -->
+    <!-- Define the audit perf4j file appender -->
+    <appender name="perf4jFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>/mnt/ncr/logs/cxp-perf4j.log</File>
+        <append>true</append>
+        <encoder>
+            <Pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSZZ}\t${HOSTNAME}\t[%thread]\t%-5level\t%logger\t%msg%n</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>/mnt/ncr/logs/cxp-perf4j-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 50 MB -->
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="coalescingStatistics" class="org.perf4j.logback.AsyncCoalescingStatisticsAppender">
+        <!-- encoders are assigned the type
+            ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <!--
+            The TimeSlice option is used to determine the time window for which all received StopWatch logs are aggregated to create a single
+            GroupedTimingStatistics log. The default is 30000 ms
+        -->
+        <timeSlice>300000</timeSlice>
+        <appender-ref ref="perf4jFileAppender" />
+    </appender>
+    <!--
+        AUDIT LOG Definitions
+    -->
+    <!-- Define the audit log file appender -->
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/mnt/ncr/logs/cxp-audit.log</file>
+        <append>true</append>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSZZ}\t${HOSTNAME}\t[%thread]\t%-5level\t%logger\t%msg%n</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>/mnt/ncr/logs/cxp-audit-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 50 MB -->
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+    <!-- Audit Logger that uses additivity=false to ensure the audit information only goes to the audit log -->
+    <logger name="com.ncr.cxp.services.audit" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_FILE" />
+    </logger>
+    <!-- Define the cxp services log file appender -->
+    <appender name="LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/mnt/ncr/logs/cxp-services.log</file>
+        <append>true</append>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSZZ}\t${HOSTNAME}\t[%thread]\t%-5level\t%logger\t%msg%n</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>/mnt/ncr/logs/cxp-services-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 50 MB -->
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+    <jmxConfigurator />
+
+<!-- The Perf4J logger. Note that org.perf4j.TimingLogger is the value of 
+        the org.perf4j.StopWatch.DEFAULT_LOGGER_NAME constant. Also, note that additivity 
+        is set to false, which is usually what is desired - this means that timing 
+        statements will only be sent to this logger and NOT to upstream loggers. -->
+    <logger name="org.perf4j.TimingLogger" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="coalescingStatistics"/>
+    </logger>
+    <!-- Define the NCR loggers -->
+    <logger name="com.ncr.cxp" level="ERROR" />
+    <!-- <logger name="com.ncr.cxp.services.audit" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.services.language" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.services.preferences" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.services.security" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.services.terminals" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.journaling" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.provisioning" level="DEBUG" /> -->
+    <!-- <logger name="com.ncr.cxp.security" level="DEBUG" /> -->
+     
+    <!--
+        Spring Loggers
+    -->
+    <!-- Spring root logger -->
+    <logger name="org.springframework" level="ERROR" />
+	
+    <!-- Web (use for tracing requests / exceptions returned to client) -->
+    <!-- <logger name="org.springframework.web" level="WARN" /> -->
+    <!-- Security -->
+    <!-- <logger name="org.springframework.security" level="WARN" /> -->
+    <!-- DB Persistence -->
+    <!-- <logger name="org.springframework.orm" level="WARN" /> -->
+    <!-- <logger name="org.springframework.transaction" level="WARN" /> -->
+    <!-- <logger name="org.springframework.data" level="WARN" /> -->
+    <!-- <logger name="org.springframework.jdbc" level="WARN" /> -->
+    
+    <!-- Define the Dozer loggers -->
+    <logger name="org.dozer" level="ERROR" />
+	
+	<!-- Define the Hazelcast loggers -->
+    <logger name="com.hazelcast" level="ERROR" />
+    
+	<!-- Define the hibernate loggers -->
+    <!-- <logger name="org.hibernate" level="DEBUG" /> -->
+    <!-- <logger name="org.hibernate.type" level="ALL" /> -->
+    
+	<!-- Define the apache loggers -->
+    <logger name="org.apache.cxf" level="ERROR"/>
+    
+	<!-- Define the root logger -->
+    <root level="ERROR">
+        <appender-ref ref="LOG_FILE" />
+    </root>
+</configuration>
